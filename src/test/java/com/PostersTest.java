@@ -22,7 +22,6 @@ public class PostersTest {
 
     @Test
     public void inOutMapIsCorrect() {
-        Map<String, String> inOut = getInOutFileName();
         for (String in : inOut.keySet()) {
             String out = inOut.get(in);
 
