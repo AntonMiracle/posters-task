@@ -18,6 +18,7 @@ public class Posters {
             lines = Files.readAllLines(Paths.get("pla.in"));
         } catch (IOException e) {
             e.printStackTrace();
+            writeError(e.toString());
         }
         houses = new int[Integer.valueOf(lines.get(0))];
         for (int i = 1; i < lines.size(); ++i) {
@@ -63,6 +64,16 @@ public class Posters {
     private void writeAnswer() {
         List<String> lines = Arrays.asList(String.valueOf(count));
         Path file = Paths.get("pla.out");
+        try {
+            Files.write(file, lines, Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeError(String text) {
+        List<String> lines = Arrays.asList(text);
+        Path file = Paths.get("ERROR.out");
         try {
             Files.write(file, lines, Charset.forName("UTF-8"));
         } catch (IOException e) {

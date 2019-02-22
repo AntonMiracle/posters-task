@@ -34,7 +34,7 @@ public class PostersTest {
     }
 
     @Test
-    public void calculation_1a() throws IOException {
+    public void calculation() throws IOException {
         makeTest("1a");
         makeTest("1b");
         makeTest("1c");
