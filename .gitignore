@@ -26,3 +26,6 @@ hs_err_pid*
 .idea
 target
 posters-task.iml
+
+# not ignore this
+!posters-task-1.0-jar-with-dependencies.jar
