@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.PostersTest.GrowthRateType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PostersTest {
@@ -105,28 +106,55 @@ public class PostersTest {
         return duration / 1_000_000_000.;
     }
 
-    //================================================
-    //GROW RATE TESTS
-    //================================================
+    @Test
+    public void growthRate() {
+        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
+            currentBuildings += j;
+            makeGrowthTest(currentBuildings, ALL_GROWTH);
+        }
+        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
+            currentBuildings += j;
+            makeGrowthTest(currentBuildings, ALL_GROWTH_LAST_LOWER_THEN_ALL);
+        }
+        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
+            currentBuildings += j;
+            makeGrowthTest(currentBuildings, ALL_REDUCTION);
+        }
+        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
+            currentBuildings += j;
+            makeGrowthTest(currentBuildings, ALL_REDUCTION_FIRST_LOWER_THEN_ALL);
+        }
+        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
+            currentBuildings += j;
+            makeGrowthTest(currentBuildings, GROWTH_AFTER_MIDDLE_REDUCTION);
+        }
+    }
+
+    private void makeGrowthTest(int currentBuildings, GrowthRateType type) {
+        long currentTime = getCalculationTime(currentBuildings, type);
+        double result = isOnByTheEquation(currentTime, currentBuildings, type);
+        assertThat(result < 10).isTrue();// infelicity 1% in nano seconds
+    }
+
     private int[] createBuildings(int numberOfBuildings, GrowthRateType type) {
         int[] result = new int[numberOfBuildings];
-        if (type == GrowthRateType.ALL_GROWTH) {
+        if (type == ALL_GROWTH) {
             for (int i = 0; i < result.length; ) result[i] = ++i;
         }
-        if (type == GrowthRateType.LAST_LOWER_THEN_ALL) {
+        if (type == ALL_GROWTH_LAST_LOWER_THEN_ALL) {
             for (int i = 0; i < result.length - 1; ) result[i] = ++i + 1;
             result[result.length - 1] = 1;
         }
-        if (type == GrowthRateType.ALL_REDUCTION) {
+        if (type == ALL_REDUCTION) {
             int max = 1_000_000;
             for (int i = 0; i < result.length; ) result[i] = max - ++i;
         }
-        if (type == GrowthRateType.ALL_REDUCTION_FIRST_LOWER_THEN_ALL) {
+        if (type == ALL_REDUCTION_FIRST_LOWER_THEN_ALL) {
             int max = 1_000_000;
             for (int i = 1; i < result.length; ) result[i] = max - ++i;
             result[0] = 1;
         }
-        if (type == GrowthRateType.GROWTH_AFTER_MIDDLE_REDUCTION) {
+        if (type == GROWTH_AFTER_MIDDLE_REDUCTION) {
             int middle = result.length / 2;
             int h = 100;
             for (int i = 0; i < result.length; ++i) {
@@ -138,7 +166,7 @@ public class PostersTest {
         return result;
     }
 
-    private long makeGrowthRateTest(int numbersOfBuildings, GrowthRateType type) {
+    private long getCalculationTime(int numbersOfBuildings, GrowthRateType type) {
         int[] buildings = createBuildings(numbersOfBuildings, type);
         long startTime = System.nanoTime();
         Posters posters = new Posters(buildings);
@@ -147,90 +175,16 @@ public class PostersTest {
         return endTime - startTime;
     }
 
-    @Test
-    public void growthRateAllGrowth() {
-        Map<Integer, Long> results = new TreeMap<>();
-        for (int j = 200, i = 0; i < 250_000; ) {
-            i += j;
-            results.put(i, makeGrowthRateTest(i, GrowthRateType.ALL_GROWTH));
-        }
-        System.out.println("==All growth : is O(n) ? : " + isOn(results));
-    }
+    private double isOnByTheEquation(long currentTime, long currentBuilding, GrowthRateType type) {
+        int maxBuilding = 250_000;
+        double maxTime = getCalculationTime(maxBuilding, type) / 1_000_000.;
+        double k = (maxTime / (double) maxBuilding);
 
-    @Test
-    public void growthRateLastLowerThenAll() {
-        Map<Integer, Long> results = new TreeMap<>();
-        for (int j = 200, i = 0; i < 250_000; ) {
-            i += j;
-            results.put(i, makeGrowthRateTest(i, GrowthRateType.LAST_LOWER_THEN_ALL));
-        }
-        System.out.println("==Last lower then all : is O(n) ? " + isOn(results));
-    }
-
-    @Test
-    public void growthRateAllReduction() {
-        Map<Integer, Long> results = new TreeMap<>();
-        for (int j = 200, i = 0; i < 250_000; ) {
-            i += j;
-            results.put(i, makeGrowthRateTest(i, GrowthRateType.ALL_REDUCTION));
-        }
-        System.out.println("==All reduction is O(n) ? : " + isOn(results));
-    }
-
-    @Test
-    public void growthRateAllReductionAndFirstLowerThenAll() {
-        Map<Integer, Long> results = new TreeMap<>();
-        for (int j = 200, i = 0; i < 250_000; ) {
-            i += j;
-            results.put(i, makeGrowthRateTest(i, GrowthRateType.ALL_REDUCTION_FIRST_LOWER_THEN_ALL));
-        }
-        System.out.println("==All reduction but first lower then all is O(n) ? : " + isOn(results));
-    }
-
-    @Test
-    public void growthRateGrowthAfterMiddleReduction() {
-        Map<Integer, Long> results = new TreeMap<>();
-        for (int j = 200, i = 0; i < 250_000; ) {
-            i += j;
-            results.put(i, makeGrowthRateTest(i, GrowthRateType.GROWTH_AFTER_MIDDLE_REDUCTION));
-        }
-        System.out.println("==Growth after middle reduction is O(n) ? : " + isOn(results));
-    }
-
-    private boolean isOn(Map<Integer, Long> resultBuildingTime) {
-        List<Long> deltaList = new ArrayList<>();
-        long lastNumBuild = 0;
-        long lastTime = 0;
-        for (int numBuild : resultBuildingTime.keySet()) {
-            long time = resultBuildingTime.get(numBuild);
-            if (lastNumBuild == 0 && lastTime == 0) {
-                lastNumBuild = numBuild;
-                lastTime = time;
-                continue;
-            }
-            deltaList.add(Math.abs(time - lastTime) / 100_000);
-        }
-
-        long sum = 0;
-        for (Long num : deltaList) {
-            sum += num;
-        }
-        long avDelta = sum / deltaList.size();
-        double infelicity = avDelta / 100.;
-
-        Stack<Long> acceptable = new DequeStack<>();
-        for (int i = 0; i < deltaList.size(); ++i) {
-            long delta = deltaList.get(i);
-            if (delta > (avDelta - infelicity) && delta < (avDelta + infelicity)) {
-                acceptable.push(delta);
-            }
-        }
-        double result = acceptable.size() / (double) deltaList.size();
-        result = Math.floor((1 - result) * 100);
-        return result > 80;
+        double result = k * currentBuilding - currentTime / 1_000_000.;
+        return result;
     }
 
     enum GrowthRateType {
-        ALL_GROWTH, LAST_LOWER_THEN_ALL, ALL_REDUCTION, ALL_REDUCTION_FIRST_LOWER_THEN_ALL, GROWTH_AFTER_MIDDLE_REDUCTION
+        ALL_GROWTH, ALL_GROWTH_LAST_LOWER_THEN_ALL, ALL_REDUCTION, ALL_REDUCTION_FIRST_LOWER_THEN_ALL, GROWTH_AFTER_MIDDLE_REDUCTION
     }
 }
