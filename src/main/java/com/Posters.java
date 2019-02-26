@@ -43,6 +43,10 @@ public class Posters {
         }
     }
 
+    public Posters(int[] houses) {
+        this.houses = houses;
+    }
+
     public void calculation() {
         Stack<Integer> stack = new DequeStack<>();
         stack.push(houses[0]);
