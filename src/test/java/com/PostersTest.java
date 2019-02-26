@@ -106,7 +106,7 @@ public class PostersTest {
         return duration / 1_000_000_000.;
     }
 
-    @Test
+    @Test//depends on computer load
     public void growthRate() {
         for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
             currentBuildings += j;
