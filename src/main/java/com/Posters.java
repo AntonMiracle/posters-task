@@ -1,9 +1,11 @@
 package com;
 
+import com.util.DequeStack;
+import com.util.Helper;
+import com.util.Stack;
+
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -16,17 +18,19 @@ public class Posters {
         List<String> lines = null;
         try {
             lines = Files.readAllLines(Paths.get("pla.in"));
+
+            houses = new int[Integer.valueOf(lines.get(0))];
+            for (int i = 1; i < lines.size(); ++i) {
+                int h = Integer.valueOf(lines.get(i).split(" ")[1]);
+                houses[i - 1] = h;
+            }
+            calculation();
+            Helper.writeResult("pla", Arrays.asList(String.valueOf(count)));
         } catch (IOException e) {
             e.printStackTrace();
-            writeError(e.toString());
+            Helper.writeError("pla", e.toString());
         }
-        houses = new int[Integer.valueOf(lines.get(0))];
-        for (int i = 1; i < lines.size(); ++i) {
-            int h = Integer.valueOf(lines.get(i).split(" ")[1]);
-            houses[i - 1] = h;
-        }
-        calculation();
-        writeAnswer();
+
     }
 
     public Posters(String fileName) {
@@ -63,26 +67,6 @@ public class Posters {
             }
         }
         count += stack.size();
-    }
-
-    private void writeAnswer() {
-        List<String> lines = Arrays.asList(String.valueOf(count));
-        Path file = Paths.get("pla.out");
-        try {
-            Files.write(file, lines, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void writeError(String text) {
-        List<String> lines = Arrays.asList(text);
-        Path file = Paths.get("ERROR.out");
-        try {
-            Files.write(file, lines, Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public int getCount() {

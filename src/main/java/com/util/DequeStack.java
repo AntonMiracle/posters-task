@@ -1,4 +1,4 @@
-package com;
+package com.util;
 
 
 import java.util.ArrayDeque;
@@ -30,5 +30,10 @@ public class DequeStack<T> implements Stack<T> {
     @Override
     public int size() {
         return deque.size();
+    }
+
+    @Override
+    public String toString() {
+        return "deque=" + deque;
     }
 }

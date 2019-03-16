@@ -1,4 +1,4 @@
-package com;
+package com.util;
 
 public interface Stack<T> {
     void push(T object);
@@ -10,4 +10,5 @@ public interface Stack<T> {
     T peek();
 
     int size();
+
 }
