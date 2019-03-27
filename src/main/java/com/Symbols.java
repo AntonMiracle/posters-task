@@ -1,105 +1,111 @@
 package com;
 
-import com.util.Helper;
-import com.util.SymbolGroup;
-
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class Symbols {
     private int length;
-    private String name1;
-    private String name2;
+    private int[] compare;
+    private int[] prime;
+    private int[][] compressedCompare;
+    private boolean isCompressedEfficiencies;
     private long result;
 
 
-    public Symbols() {
-        this("lit0.in");
-    }
-
-    public Symbols(String file) {
-        List<String> input = null;
-        try {
-            input = Files.readAllLines(Paths.get(file));
-            length = Integer.valueOf(input.get(0));
-            name1 = input.get(1);
-            name2 = input.get(2);
-            result = calculate();
-            if (file.equals("lit0.in")) Helper.writeResult("lit", Arrays.asList(String.valueOf(result)));
-        } catch (IOException e) {
-            e.printStackTrace();
-            Helper.writeError("lit", e.toString());
-            System.out.println("SYMBOLS");
+    private void readAndSetUpData(String file) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(file));
+        length = Integer.valueOf(lines.get(0));
+        prime = new int[length];
+        compare = new int[length];
+        char[] c1 = lines.get(1).toCharArray();
+        char[] c2 = lines.get(2).toCharArray();
+        for (int i = 0; i < length; ++i) {
+            compare[i] = c1[i];
+            prime[i] = c2[i];
         }
+        compressedCompare();
     }
 
-    private long calculate() {
-        return calculate(name1, name2, length);
-    }
-
-    private long calculate(String name1, String name2, int n) {
-        long result = 0;
-        char[] compare = name1.toCharArray();
-        char[] prime = name2.toCharArray();
-        Set<SymbolGroup> tree = compression(compare);
-        boolean isCompressionEffective = tree.size() < n / 2;
-
-        if (!isCompressionEffective) return makeShift(compare, prime, n);
-
-        for (int i = 0; i < n; ++i) {
-            for (SymbolGroup sg : tree) {
-                if (prime[i] != sg.getSymbol()) {
-                    sg.shift();
-                } else {
-                    result += sg.getShift();
-                    sg.getLeft();
-                    if (sg.getLength() == 0) tree.remove(sg);
-                    break;
-                }
+    private void compressedCompare() {
+        compressedCompare = new int[2][length];
+        int index = 0;
+        compressedCompare[0][index] = compare[0];
+        compressedCompare[1][index] = 1;
+        for (int i = 1; i < length; ++i) {
+            if (compare[i] == compressedCompare[0][index]) {
+                compressedCompare[1][index] = compressedCompare[1][index] + 1;
+            } else {
+                ++index;
+                compressedCompare[0][index] = compare[i];
+                compressedCompare[1][index] = 1;
             }
         }
-        return result;
+        isCompressedEfficiencies = index < length / 2;
     }
 
-    private Set<SymbolGroup> compression(char[] array) {
-        Set<SymbolGroup> result = new TreeSet<>();
+    private long getResultWithCompressed() {
+        result = 0;
         int startIndex = 0;
-        for (int i = 1; i < array.length; ++i) {
-            if (array[i] != array[i - 1]) {
-                result.add(new SymbolGroup(startIndex, i - 1, array[i - 1]));
-                startIndex = i;
+        int index;
+        for (int i = 0; i < length; ++i) {
+            int symbol = prime[i];
+            index = startIndex;
+            while (symbol != compressedCompare[0][index]) {
+                result += compressedCompare[1][index];
+                if (index == length - 1) break;
+                else ++index;
             }
-            if (i == array.length - 1)
-                result.add(new SymbolGroup(startIndex, i, array[i]));
+            if (compressedCompare[1][index] == 1) {
+                while (index > startIndex) {
+                    compressedCompare[0][index] = compressedCompare[0][index - 1];
+                    compressedCompare[1][index] = compressedCompare[1][index - 1];
+                    --index;
+                }
+                ++startIndex;
+            } else {
+                compressedCompare[1][index] = compressedCompare[1][index] - 1;
+            }
         }
         return result;
     }
 
-    private long makeShift(char[] compare, char[] prime, int n) {
-        int i = -1;
-        long shift = 0;
-        char[] c1 = new char[n];
-        while (++i < n) {
-            int j = i - 1;
-            while (++j < compare.length && prime[i] != compare[j]) {
-                c1[j] = compare[j];
+    private long getResultWithoutCompressed() {
+        result = 0;
+        int index;
+        for (int i = 0; i < length; ++i) {
+            index = i;
+            int symbol = prime[i];
+            while (symbol != compare[index]) {
+                ++result;
+                ++index;
             }
-            int tmp = j;
-            while (i < tmp) {
-                compare[tmp] = c1[tmp - 1];
-                --tmp;
+            while (index > i) {
+                compare[index] = compare[index - 1];
+                --index;
             }
-            shift += Math.abs(i - j);
         }
-        return shift;
-    }
-
-    public long getResult() {
         return result;
     }
+
+    private long getResult() {
+        return isCompressedEfficiencies ? getResultWithCompressed() : getResultWithoutCompressed();
+    }
+
+    private void writeResult() throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add(String.valueOf(result));
+        Files.write(Paths.get("lit.out"), lines, Charset.forName("UTF-8"));
+    }
+
+    public long calculation(String fileName) throws IOException {
+        readAndSetUpData(fileName);
+        getResult();
+        writeResult();
+        return result;
+    }
+
 }

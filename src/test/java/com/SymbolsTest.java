@@ -16,19 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SymbolsTest {
     private static Map<String, List<String>> input;
+    private static double maxTime = 0;
 
     @BeforeClass
     public static void beforeClass() throws IOException {
         input = getInput();
     }
 
-    @Test
-    public void testDefaultConstructor() throws IOException {
-        long start = System.nanoTime();
-        assertThat(new Symbols().getResult()).isEqualTo(2);
-        double time = (System.nanoTime() - start) / 1_000_000_000.0;
-        assertThat(time < 5).isTrue();
-    }
     @Test
     public void makeTests() throws IOException {
         makeTest("lit1.in", 4);
@@ -49,12 +43,14 @@ public class SymbolsTest {
         makeTest("lit9b.in", 480769230766L);
         makeTest("lit10a.in", 1819136406);
         makeTest("lit10b.in", 480769230766L);
+        System.out.println("Symbols maxTime = " + maxTime + " seconds");
     }
 
     private void makeTest(String fileName, long result) throws IOException {
         long start = System.nanoTime();
-        assertThat(new Symbols(fileName).getResult()).isEqualTo(result);
+        assertThat(new Symbols().calculation(fileName)).isEqualTo(result);
         double time = (System.nanoTime() - start) / 1_000_000_000.0;
+        maxTime = maxTime > time ? maxTime : time;
         assertThat(time < 5).isTrue();
     }
 
