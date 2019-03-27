@@ -108,4 +108,7 @@ public class Symbols {
         return result;
     }
 
+    public static void main(String[] args) throws IOException {
+        System.out.println(new Symbols().calculation(args[0]));
+    }
 }

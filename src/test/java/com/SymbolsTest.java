@@ -1,27 +1,16 @@
 package com;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SymbolsTest {
     private static Map<String, List<String>> input;
     private static double maxTime = 0;
-
-    @BeforeClass
-    public static void beforeClass() throws IOException {
-        input = getInput();
-    }
 
     @Test
     public void makeTests() throws IOException {
@@ -53,32 +42,4 @@ public class SymbolsTest {
         maxTime = maxTime > time ? maxTime : time;
         assertThat(time < 5).isTrue();
     }
-
-    @Test
-    public void inputCorrect() {
-        for (String key : input.keySet()) {
-            List<String> data = input.get(key);
-            int length = Integer.valueOf(data.get(0));
-
-            assertThat(key.startsWith("lit")).isTrue();
-            assertThat(data.get(1).length()).isEqualTo(length);
-            assertThat(data.get(2).length()).isEqualTo(length);
-        }
-    }
-
-
-    private static Map<String, List<String>> getInput() throws IOException {
-        Map<String, List<String>> result = new HashMap<>();
-        String regex = "^lit[0-9]+[a-z]*[.]in$";
-        File[] files = new File(".").listFiles();
-
-        for (File file : files) {
-            if (Pattern.compile(regex).matcher(file.getName()).matches()) {
-                List<String> lines = Files.readAllLines(Paths.get(file.getName()));
-                result.put(file.getName(), lines);
-            }
-        }
-        return result;
-    }
-
 }

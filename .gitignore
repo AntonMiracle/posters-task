@@ -27,5 +27,5 @@ hs_err_pid*
 target
 posters-task.iml
 
-# not ignore this
-!posters-task-1.0-jar-with-dependencies.jar
+lit.out
+pla.out

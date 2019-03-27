@@ -1,75 +1,62 @@
 package com;
 
-import com.util.DequeStack;
-import com.util.Helper;
-import com.util.Stack;
-
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Posters {
     private int[] houses;
-    private int count;
+    private int length;
+    private long result;
 
-    public Posters() {
-        List<String> lines = null;
-        try {
-            lines = Files.readAllLines(Paths.get("pla.in"));
-
-            houses = new int[Integer.valueOf(lines.get(0))];
-            for (int i = 1; i < lines.size(); ++i) {
-                int h = Integer.valueOf(lines.get(i).split(" ")[1]);
-                houses[i - 1] = h;
-            }
-            calculation();
-            Helper.writeResult("pla", Arrays.asList(String.valueOf(count)));
-        } catch (IOException e) {
-            e.printStackTrace();
-            Helper.writeError("pla", e.toString());
-        }
-
-    }
-
-    public Posters(String fileName) {
-        List<String> lines = null;
-        try {
-            lines = Files.readAllLines(Paths.get(fileName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        houses = new int[Integer.valueOf(lines.get(0))];
+    private void readAndSetUpData(String fileName) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(fileName));
+        length = Integer.valueOf(lines.get(0));
+        houses = new int[length];
         for (int i = 1; i < lines.size(); ++i) {
-            int h = Integer.valueOf(lines.get(i).split(" ")[1]);
-            houses[i - 1] = h;
+            houses[i - 1] = Integer.valueOf(lines.get(i).split(" ")[1]);
         }
     }
 
-    public Posters(int[] houses) {
-        this.houses = houses;
-    }
-
-    public void calculation() {
-        Stack<Integer> stack = new DequeStack<>();
-        stack.push(houses[0]);
-        int h;
-        for (int i = 1; i < houses.length; ++i) {
-            h = houses[i];
-            if (h > stack.peek()) stack.push(h);
-            else while (!stack.isEmpty()) {
-                if (stack.peek() > h) {
-                    ++count;
-                    stack.pop();
-                } else break;
-                if (stack.isEmpty() || stack.peek() < h) stack.push(h);
+    private long getResult() {
+        result = 0;
+        ArrayDeque<Integer> stack = new ArrayDeque<>();
+        stack.addFirst(houses[0]);
+        for (int i = 1; i < length; ++i) {
+            int h = houses[i];
+            if (h > stack.getFirst()) stack.addFirst(h);
+            else {
+                while (!stack.isEmpty()) {
+                    if (h < stack.getFirst()) {
+                        ++result;
+                        stack.removeFirst();
+                    } else break;
+                    if (stack.isEmpty() || h > stack.getFirst()) stack.addFirst(h);
+                }
             }
         }
-        count += stack.size();
+        result += stack.size();
+        return result;
     }
 
-    public int getCount() {
-        return count;
+    private void writeResult() throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add(String.valueOf(result));
+        Files.write(Paths.get("pla.out"), lines, Charset.forName("UTF-8"));
+    }
+
+    public long calculation(String fileName) throws IOException {
+        readAndSetUpData(fileName);
+        getResult();
+        writeResult();
+        return result;
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(new Posters().calculation(args[0]));
     }
 }

@@ -1,190 +1,50 @@
 package com;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.Map;
 
-import static com.PostersTest.GrowthRateType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PostersTest {
     private static Map<String, String> inOut;
-
-    @BeforeClass
-    public static void beforeClass() {
-        inOut = getInOutFileName();
-    }
-
-    @Test
-    public void inOutMapIsCorrect() {
-        for (String in : inOut.keySet()) {
-            String out = inOut.get(in);
-
-            assertThat(in.split("[.]")[0]).isEqualTo(out.split("[.]")[0]);
-            assertThat(in.split("[.]")[1]).isEqualTo("in");
-            assertThat(out.split("[.]")[1]).isEqualTo("out");
-        }
-        assertThat(inOut.keySet().size() == 23).isTrue();
-    }
+    private static double maxTime = 0;
 
     @Test
     public void calculation() throws IOException {
-        makeTest("1a");
-        makeTest("1b");
-        makeTest("1c");
-        makeTest("2a");
-        makeTest("2b");
-        makeTest("2c");
-        makeTest("3a");
-        makeTest("3b");
-        makeTest("3c");
-        makeTest("4a");
-        makeTest("4b");
-        makeTest("5a");
-        makeTest("5b");
-        makeTest("6a");
-        makeTest("6b");
-        makeTest("7a");
-        makeTest("7b");
-        makeTest("8a");
-        makeTest("8b");
-        makeTest("9a");
-        makeTest("9b");
-        makeTest("10a");
-        makeTest("10b");
+        makeTest("pla1a.in", 41);
+        makeTest("pla1b.in", 105);
+        makeTest("pla1c.in", 1);
+        makeTest("pla2a.in", 718);
+        makeTest("pla2b.in", 662);
+        makeTest("pla2c.in", 4);
+        makeTest("pla3a.in", 1190);
+        makeTest("pla3b.in", 2105);
+        makeTest("pla3c.in", 1705);
+        makeTest("pla4a.in", 2201);
+        makeTest("pla4b.in", 3449);
+        makeTest("pla5a.in", 105834);
+        makeTest("pla5b.in", 107570);
+        makeTest("pla6a.in", 122285);
+        makeTest("pla6b.in", 130604);
+        makeTest("pla7a.in", 133315);
+        makeTest("pla7b.in", 149362);
+        makeTest("pla8a.in", 112754);
+        makeTest("pla8b.in", 150254);
+        makeTest("pla9a.in", 174118);
+        makeTest("pla9b.in", 148540);
+        makeTest("pla10a.in", 159396);
+        makeTest("pla10b.in", 155393);
+        System.out.println("Posters maxTime = " + maxTime + " seconds");
     }
 
-    @Test
-    public void test() {
-        new Posters();
+    private void makeTest(String fileName, long result) throws IOException {
+        double start = System.nanoTime();
+        assertThat(new Posters().calculation(fileName)).isEqualTo(result);
+        double time = (System.nanoTime() - start) / 1_000_000_000.0;
+        maxTime = maxTime > time ? maxTime : time;
+        assertThat(time < 5).isTrue();
     }
 
-    private void makeTest(String numOfFile) throws IOException {
-        String key = "pla" + numOfFile + ".in";
-        long startTime = System.nanoTime();
-        Posters posters = new Posters(key);
-        posters.calculation();
-        long endTime = System.nanoTime();
-
-        System.out.printf("%f \n", getSeconds(startTime, endTime));
-        assertThat(getSeconds(startTime, endTime) < 5).isTrue();
-        assertThat(posters.getCount() == readAnswer(inOut.get(key))).isTrue();
-    }
-
-    private static Map<String, String> getInOutFileName() {
-        Map<String, String> inOut = new HashMap<>();
-        String prefix = "pla[0-9].*[.]";
-        File[] filesList = new File(".").listFiles();
-
-        for (File in : filesList) {
-            if (Pattern.compile(prefix + "in").matcher(in.getName()).matches()) {
-                for (File out : filesList) {
-                    if (Pattern.compile(prefix + "out").matcher(out.getName()).matches()
-                            && out.getName().startsWith(in.getName().split("[.]")[0])) {
-                        inOut.put(in.getName(), out.getName());
-                        break;
-                    }
-                }
-            }
-        }
-        return inOut;
-    }
-
-    private long readAnswer(String fileName) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(fileName));
-        return Long.valueOf(lines.get(0));
-    }
-
-    private double getSeconds(long startTime, long endTime) {
-        long duration = (endTime - startTime);
-        return duration / 1_000_000_000.;
-    }
-
-    @Test//depends on computer load
-    public void growthRate() {
-        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
-            currentBuildings += j;
-            makeGrowthTest(currentBuildings, ALL_GROWTH);
-        }
-        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
-            currentBuildings += j;
-            makeGrowthTest(currentBuildings, ALL_GROWTH_LAST_LOWER_THEN_ALL);
-        }
-        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
-            currentBuildings += j;
-            makeGrowthTest(currentBuildings, ALL_REDUCTION);
-        }
-        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
-            currentBuildings += j;
-            makeGrowthTest(currentBuildings, ALL_REDUCTION_FIRST_LOWER_THEN_ALL);
-        }
-        for (int j = 200, currentBuildings = 0; currentBuildings < 250_000; ) {
-            currentBuildings += j;
-            makeGrowthTest(currentBuildings, GROWTH_AFTER_MIDDLE_REDUCTION);
-        }
-    }
-
-    private void makeGrowthTest(int currentBuildings, GrowthRateType type) {
-        long currentTime = getCalculationTime(currentBuildings, type);
-        double result = isOnByTheEquation(currentTime, currentBuildings, type);
-        assertThat(result < 10).isTrue();// infelicity 1% in nano seconds
-    }
-
-    private int[] createBuildings(int numberOfBuildings, GrowthRateType type) {
-        int[] result = new int[numberOfBuildings];
-        if (type == ALL_GROWTH) {
-            for (int i = 0; i < result.length; ) result[i] = ++i;
-        }
-        if (type == ALL_GROWTH_LAST_LOWER_THEN_ALL) {
-            for (int i = 0; i < result.length - 1; ) result[i] = ++i + 1;
-            result[result.length - 1] = 1;
-        }
-        if (type == ALL_REDUCTION) {
-            int max = 1_000_000;
-            for (int i = 0; i < result.length; ) result[i] = max - ++i;
-        }
-        if (type == ALL_REDUCTION_FIRST_LOWER_THEN_ALL) {
-            int max = 1_000_000;
-            for (int i = 1; i < result.length; ) result[i] = max - ++i;
-            result[0] = 1;
-        }
-        if (type == GROWTH_AFTER_MIDDLE_REDUCTION) {
-            int middle = result.length / 2;
-            int h = 100;
-            for (int i = 0; i < result.length; ++i) {
-                if (i < middle) result[i] = ++h;
-                else result[i] = --h;
-            }
-            result[0] = 1;
-        }
-        return result;
-    }
-
-    private long getCalculationTime(int numbersOfBuildings, GrowthRateType type) {
-        int[] buildings = createBuildings(numbersOfBuildings, type);
-        long startTime = System.nanoTime();
-        Posters posters = new Posters(buildings);
-        posters.calculation();
-        long endTime = System.nanoTime();
-        return endTime - startTime;
-    }
-
-    private double isOnByTheEquation(long currentTime, long currentBuilding, GrowthRateType type) {
-        int maxBuilding = 250_000;
-        double maxTime = getCalculationTime(maxBuilding, type) / 1_000_000.;
-        double k = (maxTime / (double) maxBuilding);
-
-        double result = k * currentBuilding - currentTime / 1_000_000.;
-        return result;
-    }
-
-    enum GrowthRateType {
-        ALL_GROWTH, ALL_GROWTH_LAST_LOWER_THEN_ALL, ALL_REDUCTION, ALL_REDUCTION_FIRST_LOWER_THEN_ALL, GROWTH_AFTER_MIDDLE_REDUCTION
-    }
 }
